@@ -1,37 +1,21 @@
 import { expect } from "chai";
-
 import hre from "hardhat";
-const { ethers, networkHelpers } = await hre.network.connect();
+
+const { ethers } = await hre.network.connect();
 
 describe("Counter", function () {
-  it("Should emit the Increment event when calling the inc() function", async function () {
+  it("Test 1: incBy(5) debe aumentar el contador a 5", async function () {
     const counter = await ethers.deployContract("Counter");
 
-    await expect(counter.inc()).to.emit(counter, "Increment").withArgs(1n);
+    await counter.incBy(5n);
+
+    expect(await counter.x()).to.equal(5n);
   });
 
-  it("Should allow the owner to increment and revert for non-owners", async function () {
+  it("Test 2: incBy(0) debe fallar (revert)", async function () {
     const counter = await ethers.deployContract("Counter");
-    const nonOwnerAddress = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
-    // Impersonate the non-owner account
-    await networkHelpers.impersonateAccount(nonOwnerAddress);
+    await expect(counter.incBy(0n)).to.revert(ethers);
 
-    // Fund the non-owner account with some ETH to pay for gas
-    await networkHelpers.setBalance(nonOwnerAddress, ethers.parseEther("1.0"));
-
-    // Get a signer for the non-owner account
-    const nonOwnerSigner = await ethers.getSigner(nonOwnerAddress);
-
-    // Call inc() as the owner - should succeed
-    await expect(counter.inc()).to.emit(counter, "Increment").withArgs(1n);
-
-    // Call inc() as a non-owner - should revert
-    await expect(counter.connect(nonOwnerSigner).inc()).to.be.revertedWith(
-      "only the owner can increment the counter",
-    );
   });
 });
-
-
-
